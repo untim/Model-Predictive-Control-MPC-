@@ -91,6 +91,8 @@ int main() {
           double py = j[1]["y"]; //y-location of car
           double psi = j[1]["psi"];
           double v = j[1]["speed"];
+          double delta = j[1]["steering_angle"];
+          double a = j[1]["throttle"];
 
           /*
           * TODO: Calculate steering angle and throttle using MPC.
@@ -109,7 +111,6 @@ int main() {
         
 
 
-
           // as polyfit takes in format of VectorXd when have to transform the above ptsx, ptsy
           //as shown from the Q&A
           double* ptrx = &ptsx[0];
@@ -119,15 +120,25 @@ int main() {
           Eigen::Map<Eigen::VectorXd> ptsy_transform(ptry,6);
 
           auto coeffs = polyfit(ptsx_transform,ptsy_transform,3);
-
           double cte = polyeval(coeffs,0);  //calculate croos track error //difference between fitted polynomial and current location
           double epsi = -atan(coeffs[1]); // orientation error
 
-          //double steer_value = j[1]["steering angle"];
-          //double throttle_value = j[1]["throttle"];
-          Eigen::VectorXd state(6);
-          state << 0,0,0,v,cte,epsi;
+          
           double Lf = 2.67;
+          double latency = 0.1;
+          //v*=0.44704;
+          //psi = delta; // in coordinate now, so use steering angle to predict x and y
+          px = 0 + v*latency; 
+          py = 0;
+          cte= cte + v*sin(epsi)*latency;
+          epsi = epsi + v*-delta*latency/Lf;
+          cout<<"Test4"<<endl;
+          psi = 0 + v*-delta*latency/Lf;
+          v = v + a*latency;
+          
+          Eigen::VectorXd state(6);
+          state << px,py,psi,v,cte,epsi;
+          cout<<"Test5"<<endl;
           auto vars = mpc.Solve(state,coeffs);
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
           // Otherwise the values will be in between [-deg2rad(25), deg2rad(25] instead of [-1, 1].
@@ -140,6 +151,7 @@ int main() {
           //Display the waypoints/reference line
           vector<double> next_x_vals;
           vector<double> next_y_vals;
+          cout<<"Test6"<<endl;
           double poly_inc = 2.5;
           int num_points = 25;
           for (int i = 1; i < num_points; i++){
@@ -147,7 +159,7 @@ int main() {
             next_y_vals.push_back(polyeval(coeffs,poly_inc*i));
           }
 
-          for (int i = 2; i> vars.size(); i++){
+          for (int i = 2; i< vars.size(); i++){
             if(i%2 ==0){
               mpc_x_vals.push_back(vars[i]);
             } else {
