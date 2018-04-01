@@ -128,17 +128,16 @@ int main() {
           double latency = 0.1;
           //v*=0.44704;
           //psi = delta; // in coordinate now, so use steering angle to predict x and y
+          //From reviewer
           px = 0 + v*latency; 
           py = 0;
           cte= cte + v*sin(epsi)*latency;
           epsi = epsi + v*-delta*latency/Lf;
-          cout<<"Test4"<<endl;
           psi = 0 + v*-delta*latency/Lf;
           v = v + a*latency;
           
           Eigen::VectorXd state(6);
           state << px,py,psi,v,cte,epsi;
-          cout<<"Test5"<<endl;
           auto vars = mpc.Solve(state,coeffs);
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
           // Otherwise the values will be in between [-deg2rad(25), deg2rad(25] instead of [-1, 1].
@@ -151,7 +150,6 @@ int main() {
           //Display the waypoints/reference line
           vector<double> next_x_vals;
           vector<double> next_y_vals;
-          cout<<"Test6"<<endl;
           double poly_inc = 2.5;
           int num_points = 25;
           for (int i = 1; i < num_points; i++){
